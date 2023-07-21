@@ -1,0 +1,50 @@
+// Required modules
+const express = require('express');
+const axios = require('axios');
+
+// Create an Express app
+const app = express();
+
+// Define the GET endpoint for "/numbers"
+app.get('/numbers', async (req, res) => {
+  try {
+    // Get the "url" query parameter from the request
+    const urls = req.query.url;
+
+    // Check if "url" parameter exists and is an array
+    if (!urls || !Array.isArray(urls)) {
+      return res.status(400).json({ error: 'Please provide valid URLs in the "url" query parameter.' });
+    }
+
+    // Array to store the results from fetching URLs
+    const results = [];
+
+    // Loop through each URL and fetch data
+    for (const url of urls) {
+      try {
+        // Fetch data from the URL
+        const response = await axios.get(url);
+
+        // Check if the response has "numbers" property with an array of numbers
+        if (response.data && Array.isArray(response.data.numbers)) {
+          // Add the fetched numbers to the results array
+          results.push(...response.data.numbers);
+        }
+      } catch (error) {
+ // Ignore errors and continue fetching other URLs
+      }
+    }
+
+    // Send the combined results of all fetched URLs
+    res.json({ numbers: results });
+  } catch (error) {
+    // Handle any unexpected errors
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Start the server on port 8008
+const PORT = 8008;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});
